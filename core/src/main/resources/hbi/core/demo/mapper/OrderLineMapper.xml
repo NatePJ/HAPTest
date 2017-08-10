@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hbi.core.demo.mapper.OrderLineMapper">
+    <resultMap id="BaseResultMap" type="hbi.core.demo.dto.OrderLine">
+        <result column="LINE_ID" property="lineId" jdbcType="DECIMAL" />
+        <result column="HEADER_ID" property="headerId" jdbcType="DECIMAL" />
+        <result column="LINE_NUMBER" property="lineNumber" jdbcType="DECIMAL" />
+        <result column="INVENTORY_ITEM_ID" property="inventoryItemId" jdbcType="DECIMAL" />
+        <result column="ORDERD_QUANTITY" property="orderdQuantity" jdbcType="DECIMAL" />
+        <result column="ORDER_QUANTITY_UOM" property="orderQuantityUom" jdbcType="VARCHAR" />
+        <result column="UNIT_SELLING_PRICE" property="unitSellingPrice" jdbcType="DECIMAL" />
+        <result column="DESCRIPTION" property="description" jdbcType="VARCHAR" />
+        <result column="COMPANY_ID" property="companyId" jdbcType="DECIMAL" />
+        <result column="ADDITION1" property="addition1" jdbcType="VARCHAR" />
+        <result column="ADDITION2" property="addition2" jdbcType="VARCHAR" />
+        <result column="ADDITION3" property="addition3" jdbcType="VARCHAR" />
+        <result column="ADDITION4" property="addition4" jdbcType="VARCHAR" />
+        <result column="ADDITION5" property="addition5" jdbcType="VARCHAR" />
+        <result column="ITEM_CODE" property="inventoryItemCode" jdbcType="VARCHAR" />
+        <result column="ITEM_DESCRIPTION" property="inventoryItemDescription" jdbcType="VARCHAR" />
+        <result column="salesAmount" property="totalAmount" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        LINE_ID,HEADER_ID,LINE_NUMBER,INVENTORY_ITEM_ID,ORDERD_QUANTITY,ORDER_QUANTITY_UOM,UNIT_SELLING_PRICE,DESCRIPTION,COMPANY_ID,ADDITION1,ADDITION2,ADDITION3,ADDITION4,ADDITION5
+    </sql>
+    <select id="selectMaxLineNumber" parameterType="Long" resultType="Long">
+        SELECT MAX(LINE_NUMBER) FROM hap_om_order_lines WHERE HEADER_ID=#{headerId}
+    </select>
+
+    <select id="selectLine" resultMap="BaseResultMap">
+        SELECT l.LINE_ID,
+        l.INVENTORY_ITEM_ID,
+        l.HEADER_ID,
+        l.LINE_NUMBER,
+        i.ITEM_CODE,
+        i.ITEM_DESCRIPTION,
+        l.ORDER_QUANTITY_UOM,
+        l.ORDERD_QUANTITY,
+        l.UNIT_SELLING_PRICE,
+        (l.ORDERD_QUANTITY*l.UNIT_SELLING_PRICE) salesAmount,
+        l.DESCRIPTION
+        FROM   hap_om_order_lines l,
+                hap_inv_inventory_items i
+        WHERE i.INVENTORY_ITEM_ID = l.INVENTORY_ITEM_ID
+            <if test="headerId != null">
+                AND l.HEADER_ID like #{headerId}
+            </if>
+        ORDER BY l.LINE_NUMBER
+    </select>
+
+    <delete id="deleteByHeaderId" parameterType="Long">
+        DELETE FROM hap_om_order_lines WHERE HEADER_ID=#{headerId}
+    </delete>
+
+</mapper>

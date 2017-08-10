@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hbi.core.demo.mapper.OrderHeaderMapper">
+    <resultMap id="BaseResultMap" type="hbi.core.demo.dto.OrderHeader">
+        <result column="HEADER_ID" property="headerId" jdbcType="DECIMAL" />
+        <result column="ORDER_NUMBER" property="orderNumber" jdbcType="VARCHAR" />
+        <result column="COMPANY_ID" property="companyId" jdbcType="DECIMAL" />
+        <result column="ORDER_DATE" property="orderDate" jdbcType="DATE" />
+        <result column="ORDER_STATUS" property="orderStatus" jdbcType="VARCHAR" />
+        <result column="CUSTOMER_ID" property="customerId" jdbcType="DECIMAL" />
+        <result column="COMPANY_NAME" property="companyName" jdbcType="DECIMAL" />
+        <result column="COMPANY_NUMBER" property="companyNumber" jdbcType="DECIMAL" />
+        <result column="CUSTOMER_NAME" property="customerName" jdbcType="DECIMAL" />
+        <result column="CUSTOMER_NUMBER" property="customerNumber" jdbcType="DECIMAL" />
+        <result column="ORDER_TOTAL_AMOUNT" property="orderTotalAmount" jdbcType="DECIMAL" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        OH.HEADER_ID,OH.ORDER_NUMBER,OH.COMPANY_ID,OH.ORDER_DATE,OH.CUSTOMER_ID
+    </sql>
+
+    <select id="select" parameterType="hbi.core.demo.dto.OrderHeader" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />,
+        ORDER_STATUS,
+        OC.COMPANY_NAME, OC.COMPANY_NUMBER, AC.CUSTOMER_NAME, AC.CUSTOMER_NUMBER,
+        (SELECT SUM(ORDERD_QUANTITY*UNIT_SELLING_PRICE) FROM hap_om_order_lines WHERE HEADER_ID=OH.HEADER_ID) ORDER_TOTAL_AMOUNT
+        FROM hap_om_order_headers OH
+        LEFT JOIN hap_org_companys OC ON OH.COMPANY_ID = OC.COMPANY_ID
+        LEFT JOIN hap_ar_customers AC ON OH.CUSTOMER_ID = AC.CUSTOMER_ID
+        <where>
+            <if test="headerId != null">
+                AND OH.HEADER_ID = #{headerId}
+            </if>
+            <if test="orderNumber != null">
+                AND OH.ORDER_NUMBER LIKE CONCAT('%', #{orderNumber}, '%')
+            </if>
+            <if test="companyId != null">
+                AND OH.COMPANY_ID = #{companyId}
+            </if>
+            <if test="customerId != null">
+                AND OH.CUSTOMER_ID = #{customerId}
+            </if>
+            <if test="orderStatus != null">
+                AND OH.ORDER_STATUS = #{orderStatus}
+            </if>
+            <if test="inventoryItemId != null">
+                and EXISTS (SELECT 1 FROM hap_om_order_lines OL WHERE OH.HEADER_ID=OL.HEADER_ID AND OL.INVENTORY_ITEM_ID=#{inventoryItemId})
+            </if>
+        </where>
+    </select>
+
+</mapper>
